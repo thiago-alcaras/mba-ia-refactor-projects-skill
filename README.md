@@ -15,8 +15,9 @@ Skill para Claude Code que automatiza a análise, auditoria e refatoração de p
 | 5 | HIGH | God Module (models.py com 310 linhas) | models.py:1-310 | 4 domínios (produtos, usuários, pedidos, relatórios) em um único arquivo |
 | 6 | HIGH | Dados sensíveis expostos em endpoints | controllers.py:275-282 | health_check retorna secret_key; /usuarios retorna senhas |
 | 7 | MEDIUM | N+1 queries em listagem de pedidos | models.py:163-200 | 3 níveis de cursor aninhados: pedidos → itens → produtos |
-| 8 | LOW | Magic numbers em regras de desconto | models.py:254-260 | Thresholds (10000, 5000, 1000) e percentuais (0.1, 0.05) soltos |
-| 9 | LOW | Print statements em vez de logging | controllers.py (múltiplas) | `print("ERRO CRITICO...")` sem níveis de log |
+| 8 | MEDIUM | Estado global mutável na conexão com banco | database.py:4-5 | `db_connection` é compartilhada entre requisições, o que cria risco de concorrência e torna o estado da aplicação imprevisível. |
+| 9 | LOW | Magic numbers em regras de desconto | models.py:254-260 | Thresholds (10000, 5000, 1000) e percentuais (0.1, 0.05) soltos |
+| 10 | LOW | Print statements em vez de logging | controllers.py (múltiplas) | `print("ERRO CRITICO...")` sem níveis de log |
 
 ### Projeto 2 — ecommerce-api-legacy (Node.js/Express)
 
@@ -28,7 +29,9 @@ Skill para Claude Code que automatiza a análise, auditoria e refatoração de p
 | 4 | HIGH | Hash de senha inseguro (badCrypto) | src/utils.js:18-23 | Base64 iterado não é criptografia; trivialmente reversível |
 | 5 | HIGH | Dados órfãos em DELETE de usuário | src/AppManager.js:117-121 | Delete não remove enrollments/payments — integridade quebrada |
 | 6 | MEDIUM | N+1 queries no relatório financeiro | src/AppManager.js:76-113 | Para cada curso, busca enrollments, para cada enrollment busca user e payment |
-| 7 | LOW | Variáveis de 1 caractere | src/AppManager.js:30-35 | `u`, `e`, `p`, `cid`, `cc` — ilegível |
+| 7 | MEDIUM | Estado global mutável | src/utils.js:9-10 | `globalCache` e `totalRevenue` são compartilhados sem encapsulamento, invalidação ou limite, comprometendo previsibilidade e testes. |
+| 8 | LOW | Variáveis de 1 caractere | src/AppManager.js:30-35 | `u`, `e`, `p`, `cid`, `cc` — ilegível |
+| 9 | LOW | Tratamento de erros inline e inconsistente | src/AppManager.js (todo o arquivo) | Respostas de erro são construídas dentro das rotas, sem middleware centralizado nem logging estruturado. |
 
 ### Projeto 3 — task-manager-api (Python/Flask)
 
@@ -42,6 +45,7 @@ Skill para Claude Code que automatiza a análise, auditoria e refatoração de p
 | 6 | MEDIUM | Duplicação da lógica overdue (4x) | routes/task_routes.py:31-40 | Mesmo if/else de 7 linhas repetido em 4 locais |
 | 7 | MEDIUM | Imports não utilizados | routes/task_routes.py:7 | `import json, os, sys, time` — nenhum usado |
 | 8 | LOW | Bare except clauses | routes/task_routes.py:63 | `except:` captura tudo incluindo SystemExit |
+| 9 | LOW | Print statements em vez de logging | routes/task_routes.py:140; routes/user_routes.py:85 | Mensagens operacionais e erros usam `print`, sem níveis, contexto ou centralização para produção. |
 
 ---
 
